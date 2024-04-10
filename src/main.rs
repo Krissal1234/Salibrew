@@ -36,15 +36,13 @@ fn main() {
         Some(Commands::Todo(todo_commands)) =>
         {
             if let Some(description) = &todo_commands.add {
-                println!("Adding todo: {}", description);
                 TodoItem::add_new(&description).unwrap();
             }else if let Some(identifier) = &todo_commands.remove {
-                println!("Removing todo: {}", identifier);
+                TodoItem::remove_item(identifier.parse::<u32>().unwrap()).unwrap();
             }else if todo_commands.list {
-                println!("Listing todo's");
                 TodoItem::list_todos().unwrap();
             }else if todo_commands.clear{
-                println!("Clearing list...");
+                TodoItem::clear_todos().unwrap();
             }
             else{
             
