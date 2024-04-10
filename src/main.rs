@@ -1,6 +1,7 @@
 mod commands;
 use clap::{ Args, Parser, Subcommand};
 use commands::todo::TodoCommands;
+use crate::commands::todo::TodoItem;
 
 #[derive(Debug, Parser)]
 #[command(name="sali", version, about, long_about = None)]
@@ -35,11 +36,13 @@ fn main() {
         Some(Commands::Todo(todo_commands)) =>
         {
             if let Some(description) = &todo_commands.add {
-                println!("Adding todo: {}", description)
+                println!("Adding todo: {}", description);
+                TodoItem::add_new(&description).unwrap();
             }else if let Some(identifier) = &todo_commands.remove {
                 println!("Removing todo: {}", identifier);
             }else if todo_commands.list {
                 println!("Listing todo's");
+                TodoItem::list_todos().unwrap();
             }else if todo_commands.clear{
                 println!("Clearing list...");
             }
@@ -51,7 +54,7 @@ fn main() {
         }
         Some(Commands::Test { num }) =>
         {
-            println!("test")
+            println!("test {}", num);
         }
         None => {println!("None")}
     }
