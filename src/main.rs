@@ -1,27 +1,24 @@
 mod commands;
-use clap::{ Args, Parser, Subcommand};
-use commands::todo::TodoCommands;
 use crate::commands::todo::TodoItem;
+use clap::{Args, Parser, Subcommand};
+use commands::todo::TodoCommands;
 
 #[derive(Debug, Parser)]
 #[command(name="sali", version, about, long_about = None)]
 // #[clap(name = "salibrew", version)]
-pub struct Sali{
+pub struct Sali {
     // #[clap(flatten)]
     // global_opts: GlobalOpts,
     #[command(subcommand)]
     command: Option<Commands>,
-
 }
 
 #[derive(Debug, Subcommand)]
 enum Commands {
     #[command(arg_required_else_help = true)]
-    Todo(TodoCommands), 
+    Todo(TodoCommands),
     #[command(arg_required_else_help = true)]
-    Test {
-        num: i32 
-    }
+    Test { num: i32 },
 }
 
 #[derive(Debug, Args)]
@@ -33,34 +30,25 @@ fn main() {
     let cli = Sali::parse();
 
     match &cli.command {
-        Some(Commands::Todo(todo_commands)) =>
-        {
+        Some(Commands::Todo(todo_commands)) => {
             if let Some(description) = &todo_commands.add {
                 TodoItem::add_new(&description).unwrap();
-            }else if let Some(identifier) = &todo_commands.remove {
+            } else if let Some(identifier) = &todo_commands.remove {
                 TodoItem::remove_item(identifier.parse::<u32>().unwrap()).unwrap();
-            }else if todo_commands.list {
+            } else if todo_commands.list {
                 TodoItem::list_todos().unwrap();
-            }else if todo_commands.clear{
+            } else if todo_commands.clear {
                 TodoItem::clear_todos().unwrap();
-            }
-            else{
-            
+            } else {
                 println!("No todo specified");
             }
             // dbg!(cli);
         }
-        Some(Commands::Test { num }) =>
-        {
+        Some(Commands::Test { num }) => {
             println!("test {}", num);
         }
-        None => {println!("None")}
+        None => {
+            println!("None")
+        }
     }
-    // match &cli.command {
-    //     Some(Commands::Test {num})=> {
-    //         println!("{}",num);
-    //     }
-    //     None => {println!("None found")}
-    // }
-
 }
