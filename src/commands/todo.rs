@@ -1,8 +1,8 @@
-use std::{fs::{self, File}, io::{self, ErrorKind},path::{Path,PathBuf}};
-// use directories::ProjectDirs;
+use std::{fs::{self, File}, io::{self, ErrorKind},path::Path};
+use directories::ProjectDirs;
 use serde::{Serialize,Deserialize};
 use clap::Args;
-const FILE_PATH: &str = "src/data_stores/todo.json"; 
+// const FILE_PATH: &str = "src/data_stores/todo.json"; 
 
 #[derive(Debug,Args)]
 pub struct TodoCommands{
@@ -20,7 +20,6 @@ pub struct TodoCommands{
     // // pub priority: u32
 //ideas: Scan file for TODO comments and add to list
 }
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TodoItem {
     pub id: u32,
@@ -28,32 +27,23 @@ pub struct TodoItem {
     pub completed: bool, 
 }
 
-//attempted to use directories library 
-// fn get_data_file_path() -> Result<PathBuf, io::Error> {
-// if let Some(proj_dirs) = ProjectDirs::from("com","SalibrewUtils","Salibrew") {
-//     let data_dir = proj_dirs.data_dir();
-//     fs::create_dir_all(data_dir).expect("Failed to create a data directory");
-//     Ok(data_dir.join("todo.json"))
-// }else{
-//     Err(io::Error::new(io::ErrorKind::NotFound, "Could not determine project directory"))
-// }
-// }
-// fn use_path_as_str(path: &PathBuf) -> Result<(), String> {
-//     match path.to_str() {
-//         Some(path_str) => {
-//             // Use path_str, which is a &str
-//             // Your function logic here
-//             Ok(())
-//         },
-//         None => Err("Path contains invalid Unicode characters.".to_string()),
-//     }
-// }
+//uses directories library 
+fn get_data_file_path() -> Result<String, io::Error> {
+    if let Some(proj_dirs) = ProjectDirs::from("com", "SalibrewUtils", "Salibrew") {
+        let data_dir = proj_dirs.data_dir();
+        fs::create_dir_all(data_dir).expect("Failed to create a data directory");
+        Ok(data_dir.join("todo.json").to_str().unwrap_or_default().to_owned())
+    } else {
+        Err(io::Error::new(io::ErrorKind::NotFound, "Could not determine project directory"))
+    }
+}
 
 impl TodoItem {
 //look into directories crate to save the json file
     fn load_todos() -> Result<Vec<TodoItem>,io::Error> {
-        if Path::new(FILE_PATH).exists() {
-            let data = fs::read_to_string(FILE_PATH)?;
+        let file_path = get_data_file_path()?;
+        if Path::new(&file_path).exists() {
+            let data = fs::read_to_string(&file_path)?;
             //"[{}]" handles the case when there are no items in the todo list
             if data.trim().is_empty() || data.trim() == "[{}]" {
                 Ok(Vec::new())
@@ -63,7 +53,7 @@ impl TodoItem {
             }
         } else {
             println!("Creating todo data store...");
-            File::create(FILE_PATH)?;
+            File::create(&file_path)?;
             Ok(Vec::new())
         }
     }
@@ -85,7 +75,8 @@ impl TodoItem {
 
         let todos_json = serde_json::to_string(&todos).map_err(|e| io::Error::new(ErrorKind::InvalidData, e.to_string()))?;
 
-        fs::write(FILE_PATH, todos_json)?; 
+        let file_path = get_data_file_path()?;
+        fs::write(&file_path, todos_json)?; 
         Ok(()) 
     }
 
@@ -108,7 +99,9 @@ impl TodoItem {
     }
 
     pub fn clear_todos() -> Result<(), io::Error> {
-        fs::write(FILE_PATH, "[{}]")?; 
+
+        let file_path = get_data_file_path()?;
+        fs::write(&file_path, "[{}]")?; 
         Ok(()) 
     } 
     pub fn remove_item(id: u32) -> Result<(), io::Error> {
@@ -123,7 +116,8 @@ impl TodoItem {
 
         let todos_json = serde_json::to_string(&todos).map_err(|e| io::Error::new(ErrorKind::InvalidData, e.to_string()))?;
 
-        fs::write(FILE_PATH, todos_json)?; 
+        let file_path = get_data_file_path()?;
+        fs::write(&file_path, todos_json)?; 
         Ok(())
     }
 
